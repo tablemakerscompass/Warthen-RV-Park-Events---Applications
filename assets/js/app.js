@@ -515,6 +515,7 @@
       _subject: "New Vendor Application – " + (data.businessName || ""),
       _template: "table",
       _captcha: "false",
+      _cc: "the5loavesagency@gmail.com",
       _autoresponse:
         "Thank you for applying to be a vendor at The Motown Review: A Tribute to Berry Gordy, " +
         "featuring The Band of the South (Saturday, September 19 at Warthen RV Park). " +
