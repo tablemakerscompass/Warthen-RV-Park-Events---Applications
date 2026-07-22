@@ -466,27 +466,30 @@
       return;
     }
 
+    // Silently drop spam bots that filled the hidden honeypot.
+    if (data.honeypot) {
+      rememberSubmission(fp);
+      showConfirmation(data, buildPdf(data));
+      return;
+    }
+
     submitting = true;
     submitBtn.classList.add("is-loading");
     submitBtn.disabled = true;
     lastPayload = data;
 
-    // Build PDF (base64, no header) for server attachment
+    // Client-side PDF for the vendor's own records (download on confirmation).
     var pdfDoc = buildPdf(data);
-    var pdfBase64 = null;
-    if (pdfDoc) {
-      try { pdfBase64 = pdfDoc.output("datauristring").split(",")[1]; } catch (err) { pdfBase64 = null; }
-    }
 
-    postApplication(data, pdfBase64)
-      .then(function (res) {
+    postApplication(data)
+      .then(function () {
         rememberSubmission(fp);
-        showConfirmation(data, pdfDoc, res && res.emailed === false);
+        showConfirmation(data, pdfDoc);
       })
       .catch(function () {
-        // Backend not available — graceful client-side fallback.
+        // Email service unreachable — graceful fallback to the vendor's mail app.
         rememberSubmission(fp);
-        showConfirmation(data, pdfDoc, true);
+        showConfirmation(data, pdfDoc);
         if (pdfDoc) { try { pdfDoc.save(safeName(data)); } catch (e2) {} }
         mailtoFallback(data);
       })
@@ -502,13 +505,61 @@
     return "Motown-Review-Vendor-" + base + ".pdf";
   }
 
-  function postApplication(data, pdfBase64) {
-    return fetch("/api/submit", {
+  // Applications are emailed via FormSubmit (https://formsubmit.co) — no account
+  // or API key required. The full application is delivered as a formatted table;
+  // the applicant receives an automatic confirmation via the `_autoresponse`.
+  var FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/sisterrosellc@gmail.com";
+
+  function postApplication(data) {
+    var payload = {
+      _subject: "New Vendor Application – " + (data.businessName || ""),
+      _template: "table",
+      _captcha: "false",
+      _autoresponse:
+        "Thank you for applying to be a vendor at The Motown Review: A Tribute to Berry Gordy, " +
+        "featuring The Band of the South (Saturday, September 19 at Warthen RV Park). " +
+        "We have received your application and our team will review it and contact you regarding your acceptance. " +
+        "The $75 vendor fee is payable by Cash App to $warthenrvpark once approved — please include your business name in the payment notes. " +
+        "Questions? Call 478-201-7610. Follow us @warthenrvpark. — Warthen RV Park",
+      name: data.contactName,
+      email: data.email,
+      "Business Name": data.businessName,
+      "Owner / Contact Name": data.contactName,
+      "Phone": data.phone,
+      "Email": data.email,
+      "Business Address": [data.address, data.city, data.state, data.zip].filter(Boolean).join(", "),
+      "Website": data.website,
+      "Facebook": data.facebook,
+      "Instagram": data.instagram,
+      "TikTok": data.tiktok,
+      "Vendor Category": data.category,
+      "Products / Services": data.products,
+      "Booth Size": data.boothSize,
+      "Electricity": data.electricity + (data.electricityDetails ? " - " + data.electricityDetails : ""),
+      "Bringing": data.bring,
+      "Additional Setup Requests": data.setupRequests,
+      "Emergency Contact": [data.emergencyName, data.emergencyRelationship, data.emergencyPhone].filter(Boolean).join(" | "),
+      "Agreed to Guidelines": data.agreeGuidelines ? "Yes" : "No",
+      "Agreed to Liability Release": data.agreeRelease ? "Yes" : "No",
+      "Digital Signature": data.signature,
+      "Printed Name": data.printedName,
+      "Signed Date": data.signDate,
+      "Status": data.status,
+      "Submitted": data.submittedAtLocal
+    };
+    // Drop empty optional values so the email stays tidy.
+    Object.keys(payload).forEach(function (k) {
+      if (payload[k] === "" || payload[k] == null) delete payload[k];
+    });
+
+    return fetch(FORMSUBMIT_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ application: data, pdfBase64: pdfBase64 })
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
     }).then(function (r) {
       if (!r.ok) throw new Error("bad status " + r.status);
+      // A 200 response means FormSubmit accepted the submission (the first one
+      // triggers a one-time activation email that must be confirmed).
       return r.json().catch(function () { return {}; });
     });
   }

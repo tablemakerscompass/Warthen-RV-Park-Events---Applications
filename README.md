@@ -48,20 +48,33 @@ vercel.json             Vercel config
 
 ## How submission works
 
-On submit the browser POSTs the application (plus a base64 PDF) to
-`/api/submit`. That function:
+Applications are emailed through **[FormSubmit](https://formsubmit.co)** — a free
+service that needs **no account and no API key**. On submit the browser:
 
-1. Validates the payload and rejects spam (honeypot).
-2. Saves the application to Supabase (if configured) with status
-   **“Pending Review”**, capturing submission date/time and IP address.
-3. Emails the completed application **and the PDF** to
-   `sisterrosellc@gmail.com` with subject `New Vendor Application – [Business Name]`.
-4. Sends an automatic confirmation email to the applicant.
+1. Validates all fields and rejects spam via a hidden honeypot.
+2. POSTs the completed application to FormSubmit's AJAX endpoint, which emails it
+   to `sisterrosellc@gmail.com` with subject `New Vendor Application – [Business Name]`,
+   formatted as a table.
+3. Sends the applicant an automatic confirmation email (FormSubmit
+   `_autoresponse`).
+4. Renders a printable **PDF copy** the vendor can download from the confirmation
+   screen for their records.
 
-**No backend required to demo it.** If `/api/submit` isn’t deployed or no email
-provider is configured, the page automatically falls back to generating the PDF
-locally, downloading it, and opening a pre-filled email to the administrator —
-so the form is never a dead end.
+> **One-time activation:** the very first submission triggers a FormSubmit
+> confirmation email to `sisterrosellc@gmail.com`. Click the activation link once,
+> and every submission after that flows straight to the inbox.
+
+**Never a dead end.** If FormSubmit is ever unreachable, the page falls back to
+generating the PDF locally, downloading it, and opening a pre-filled email to the
+administrator.
+
+### Optional: `/api/submit` (Supabase storage)
+
+The repo also includes a dependency-free Vercel function at `api/submit.js` for
+teams who additionally want to **save every application to a database** (Supabase)
+or send email via Resend. It is not required for the email flow above — see
+[`.env.example`](.env.example) and [`supabase/schema.sql`](supabase/schema.sql) to
+enable it.
 
 ## Deploy to Vercel
 
