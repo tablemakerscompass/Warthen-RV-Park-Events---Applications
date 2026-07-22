@@ -7,7 +7,10 @@ to Berry Gordy**, featuring The Band of the South.
 **Event:** Saturday, September 19 · Warthen RV Park · 9470 S. Sparta Davisboro
 Road, Warthen, GA 31094
 
-![vintage Motown themed — black, deep burgundy, warm gold, cream](assets/img/flyer.jpg)
+> **Note:** GitHub only stores the source. To view the actual page, deploy it
+> (see [Deploy to Vercel](#deploy-to-vercel)) or open `index.html` locally.
+> The event flyer is not committed — drop it in at `assets/img/flyer.jpg` and a
+> styled CSS stand-in is used until then.
 
 ---
 
