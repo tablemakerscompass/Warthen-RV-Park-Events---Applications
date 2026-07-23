@@ -525,6 +525,58 @@ input[type="date"] { color-scheme: dark; }
 .confirm-pay-sub { font-size: 0.76rem; color: var(--ink-dim); margin: 0.6rem 0 0; }
 .confirm-pay-sub strong { color: var(--cream-dim); }
 
+/* Payment proof / screenshot upload */
+.confirm-proof {
+  border-top: 1px solid var(--line-soft); padding-top: 1.3rem; margin-top: 1.2rem; text-align: left;
+}
+.confirm-proof-head {
+  text-align: center; font-family: var(--font-display); color: var(--gold-lite);
+  font-size: 1.05rem; margin: 0 0 1rem;
+}
+.proof-form { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.9rem; }
+.proof-row { display: flex; flex-direction: column; gap: 0.35rem; }
+.proof-row label { font-size: 0.82rem; font-weight: 600; color: var(--cream); }
+.proof-row input[type="text"] {
+  background: rgba(0,0,0,0.35); border: 1px solid var(--line-soft); border-radius: 10px;
+  padding: 0.7rem 0.85rem; color: var(--cream);
+}
+.proof-row input[type="text"]:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,0.16); }
+.proof-row input[type="file"] {
+  font-size: 0.85rem; color: var(--cream-dim);
+  background: rgba(0,0,0,0.25); border: 1px dashed var(--line); border-radius: 10px; padding: 0.6rem 0.7rem;
+}
+.proof-row input[type="file"]::file-selector-button {
+  font-family: var(--font-body); font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  color: #2a1608; background: linear-gradient(180deg, var(--gold-lite), var(--gold-deep));
+  border: none; border-radius: 8px; padding: 0.45rem 0.8rem; margin-right: 0.7rem;
+}
+.proof-submit { align-self: center; margin-top: 0.2rem; }
+.proof-submit.is-loading { opacity: 0.7; pointer-events: none; }
+.proof-note { text-align: center; font-size: 0.76rem; color: var(--ink-dim); margin: 0.2rem auto 0; max-width: 40ch; }
+
+/* Payment received banner */
+.payment-toast {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 200; max-width: 92vw;
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.85rem 1.1rem; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(24,15,10,0.98), rgba(11,7,5,0.98));
+  border: 1px solid var(--gold); box-shadow: var(--shadow-gold), var(--shadow);
+  color: var(--cream); font-size: 0.9rem;
+  animation: toastIn 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.toast-icon {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, #00e838, #00a827); color: #063a17; font-weight: 800; font-size: 0.85rem;
+}
+.toast-close {
+  background: none; border: none; color: var(--ink-dim); font-size: 1.3rem; line-height: 1;
+  cursor: pointer; padding: 0 0.2rem; margin-left: 0.2rem;
+}
+.toast-close:hover { color: var(--gold-lite); }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, -16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
 .confirm-download { border-top: 1px solid var(--line-soft); padding-top: 1.2rem; margin-top: 1.2rem; }
 .confirm-download p { font-size: 0.86rem; margin-bottom: 0.7rem; }
 .confirm-follow { margin: 1.4rem 0 1rem; letter-spacing: 0.04em; }

@@ -36,6 +36,33 @@
     if (flyerImg.complete && flyerImg.naturalWidth === 0) showFlyerFallback();
   }
 
+  /* ---------- Payment proof form (screenshot upload) ---------- */
+  var proofForm = document.getElementById("paymentProofForm");
+  var proofNext = document.getElementById("proofNext");
+  var paymentToast = document.getElementById("paymentToast");
+  if (proofNext) {
+    // Where FormSubmit sends the vendor back after the upload.
+    proofNext.value = window.location.origin + window.location.pathname + "#payment-received";
+  }
+  if (proofForm) {
+    proofForm.addEventListener("submit", function () {
+      var btn = proofForm.querySelector(".proof-submit");
+      if (btn) { btn.classList.add("is-loading"); btn.textContent = "Sending…"; }
+    });
+  }
+  // Show the "payment received" banner when we return from FormSubmit.
+  if (paymentToast && window.location.hash === "#payment-received") {
+    paymentToast.hidden = false;
+    if (history.replaceState) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    setTimeout(function () { paymentToast.hidden = true; }, 9000);
+  }
+  var toastClose = document.getElementById("toastClose");
+  if (toastClose) {
+    toastClose.addEventListener("click", function () { paymentToast.hidden = true; });
+  }
+
   /* ---------- Nav shadow on scroll ---------- */
   var nav = document.getElementById("siteNav");
   window.addEventListener("scroll", function () {
@@ -576,6 +603,12 @@
         try { pdfDoc.save(safeName(data)); } catch (err) {}
       });
     }
+    // Pre-fill the payment-confirmation form with the applicant's business name.
+    var proofBusiness = document.getElementById("proofBusiness");
+    var proofSubject = document.getElementById("proofSubject");
+    if (proofBusiness) proofBusiness.value = data.businessName || "";
+    if (proofSubject) proofSubject.value = "Vendor Payment Confirmation – " + (data.businessName || "");
+
     confirmScreen.hidden = false;
     document.body.style.overflow = "hidden";
     confirmScreen.scrollTop = 0;

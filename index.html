@@ -23,6 +23,13 @@
   <!-- Decorative ambient stage lighting -->
   <div class="stage-glow" aria-hidden="true"></div>
 
+  <!-- Payment confirmation banner (shown after a screenshot is submitted) -->
+  <div class="payment-toast" id="paymentToast" role="status" hidden>
+    <span class="toast-icon" aria-hidden="true">&#10004;</span>
+    <span>Payment confirmation received &mdash; thank you! We&rsquo;ll match it to your application.</span>
+    <button type="button" class="toast-close" id="toastClose" aria-label="Dismiss">&times;</button>
+  </div>
+
   <!-- ============ NAV ============ -->
   <header class="site-nav" id="siteNav">
     <div class="nav-inner">
@@ -418,6 +425,32 @@
           <span>Pay $75 Vendor Fee</span>
         </a>
         <p class="confirm-pay-sub">Opens Cash App to <strong>$warthenrvpark</strong></p>
+      </div>
+
+      <div class="confirm-proof">
+        <p class="confirm-proof-head">Already paid? Confirm your payment</p>
+        <form id="paymentProofForm" class="proof-form"
+              action="https://formsubmit.co/sisterrosellc@gmail.com"
+              method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="_subject" id="proofSubject" value="Vendor Payment Confirmation" />
+          <input type="hidden" name="_cc" value="the5loavesagency@gmail.com" />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_next" id="proofNext" value="" />
+          <input type="hidden" name="Submission Type" value="Payment Confirmation" />
+          <!-- Honeypot -->
+          <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true" />
+          <div class="proof-row">
+            <label for="proofBusiness">Business Name</label>
+            <input type="text" id="proofBusiness" name="Business Name" placeholder="Your business name" required />
+          </div>
+          <div class="proof-row">
+            <label for="proofFile">Payment screenshot <span class="optional">(recommended)</span></label>
+            <input type="file" id="proofFile" name="attachment" accept="image/*" />
+          </div>
+          <button type="submit" class="btn btn-ghost proof-submit">I&rsquo;ve Sent My Payment</button>
+          <p class="proof-note">Attach a screenshot of your Cash App payment so we can match it to your application.</p>
+        </form>
       </div>
 
       <div class="confirm-download" id="confirmDownload" hidden>
