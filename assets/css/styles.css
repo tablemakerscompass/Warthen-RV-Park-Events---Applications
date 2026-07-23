@@ -506,7 +506,26 @@ input[type="date"] { color-scheme: dark; }
 .ci-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--bronze); font-weight: 600; }
 .ci-value { font-family: var(--font-display); color: var(--gold-lite); font-size: 1.05rem; font-weight: 700; }
 .ci-sub { font-size: 0.76rem; color: var(--ink-dim); }
-.confirm-download { border-top: 1px solid var(--line-soft); padding-top: 1.2rem; margin-top: 0.4rem; }
+/* Cash App payment CTA */
+.confirm-pay { border-top: 1px solid var(--line-soft); padding-top: 1.3rem; margin-top: 0.4rem; }
+.confirm-pay-note { font-size: 0.9rem; color: var(--cream-dim); margin: 0 auto 0.9rem; max-width: 42ch; }
+.confirm-pay-note strong { color: var(--gold-lite); }
+.btn-cashapp {
+  color: #063a17;
+  background: linear-gradient(180deg, #00e838, #00c92e 55%, #00a827);
+  box-shadow: 0 10px 34px -12px rgba(0, 200, 46, 0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.btn-cashapp:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 16px 40px -14px rgba(0, 200, 46, 0.7); }
+.btn-cashapp:active { transform: translateY(0); }
+.cashapp-glyph {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px; font-weight: 800; font-size: 0.95rem;
+  background: rgba(255,255,255,0.92); color: #00a827;
+}
+.confirm-pay-sub { font-size: 0.76rem; color: var(--ink-dim); margin: 0.6rem 0 0; }
+.confirm-pay-sub strong { color: var(--cream-dim); }
+
+.confirm-download { border-top: 1px solid var(--line-soft); padding-top: 1.2rem; margin-top: 1.2rem; }
 .confirm-download p { font-size: 0.86rem; margin-bottom: 0.7rem; }
 .confirm-follow { margin: 1.4rem 0 1rem; letter-spacing: 0.04em; }
 .confirm-follow strong { color: var(--gold-lite); }
