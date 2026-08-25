@@ -17,12 +17,19 @@
 //    RESEND_API_KEY        Resend API key (email delivery)
 //    MAIL_FROM             Verified sender, e.g. "Warthen RV Park <vendors@yourdomain.com>"
 //    ADMIN_EMAIL           Defaults to sisterrosellc@gmail.com
-//    SUPABASE_URL          e.g. https://xxxx.supabase.co
+//    ADMIN_CC              Extra recipients, comma separated
+//                          (defaults to the5loavesagency@gmail.com)
+//    SUPABASE_URL         e.g. https://xxxx.supabase.co
 //    SUPABASE_SERVICE_KEY  Supabase service-role key (server-side only)
 //    SUPABASE_TABLE        Defaults to "vendor_applications"
 // ============================================================
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "sisterrosellc@gmail.com";
+// Comma-separated extra recipients. Set ADMIN_CC="" to send to ADMIN_EMAIL only.
+const ADMIN_CC = (process.env.ADMIN_CC === undefined
+  ? "the5loavesagency@gmail.com"
+  : process.env.ADMIN_CC)
+  .split(",").map(function (s) { return s.trim(); }).filter(Boolean);
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -73,6 +80,7 @@ module.exports = async function handler(req, res) {
     }
   } catch (e) {
     console.error("Supabase store failed:", e.message);
+    results.storeError = e.message;
   }
 
   // --- 2. Email via Resend (optional) ---
@@ -82,9 +90,14 @@ module.exports = async function handler(req, res) {
       // Confirmation to applicant — non-fatal if it fails
       try { await sendApplicantEmail(record); } catch (e) { console.error("Applicant email failed:", e.message); }
       results.emailed = true;
+    } else {
+      // Not an error — the front-end falls back to its own delivery channel.
+      results.emailError = "Email is not configured (RESEND_API_KEY / MAIL_FROM are unset).";
+      console.warn(results.emailError);
     }
   } catch (e) {
     console.error("Admin email failed:", e.message);
+    results.emailError = e.message;
   }
 
   return res.status(200).json(results);
@@ -176,6 +189,7 @@ async function sendAdminEmail(r, pdfBase64) {
     subject: "New Vendor Application – " + r.businessName,
     html: adminHtml(r)
   };
+  if (ADMIN_CC.length) payload.cc = ADMIN_CC;
   if (pdfBase64) {
     payload.attachments = [{
       filename: "Vendor-Application-" + slug(r.businessName) + ".pdf",

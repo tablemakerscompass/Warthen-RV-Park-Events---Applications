@@ -498,6 +498,14 @@ input[type="date"] { color-scheme: dark; }
 }
 .confirm-lead { font-size: 1.1rem; color: var(--cream); font-weight: 600; }
 .confirm-card p { color: var(--cream-dim); }
+.confirm-warning {
+  border: 1px solid #e0a03a; border-left: 4px solid #e0a03a; border-radius: 12px;
+  background: rgba(224, 160, 58, 0.12); padding: 0.9rem 1.1rem; margin: 1.2rem 0;
+  text-align: left;
+}
+.confirm-warning .cw-head { color: #f3c46d; font-weight: 700; margin-bottom: 0.4rem; }
+.confirm-warning p { font-size: 0.92rem; }
+.confirm-warning a { color: #f3c46d; }
 .confirm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.6rem 0; text-align: left; }
 .confirm-item {
   border: 1px solid var(--line-soft); border-radius: 12px; padding: 0.9rem 1rem;

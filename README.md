@@ -48,33 +48,62 @@ vercel.json             Vercel config
 
 ## How submission works
 
-Applications are emailed through **[FormSubmit](https://formsubmit.co)** — a free
-service that needs **no account and no API key**. On submit the browser:
+Every application is pushed through **two independent delivery channels**, in
+order, so one outage never loses a vendor. On submit the browser:
 
 1. Validates all fields and rejects spam via a hidden honeypot.
-2. POSTs the completed application to FormSubmit's AJAX endpoint, which emails it
-   to `sisterrosellc@gmail.com` with subject `New Vendor Application – [Business Name]`,
-   formatted as a table.
-3. Sends the applicant an automatic confirmation email (FormSubmit
-   `_autoresponse`).
-4. Renders a printable **PDF copy** the vendor can download from the confirmation
-   screen for their records.
+2. Renders a printable **PDF copy** of the application (jsPDF).
+3. **Channel 1 — `/api/submit`.** POSTs the application plus the PDF to the
+   Vercel function, which emails it to `sisterrosellc@gmail.com` (CC
+   `the5loavesagency@gmail.com`) through [Resend](https://resend.com) with the
+   PDF attached, sends the applicant a confirmation, and optionally stores the
+   record in Supabase. Requires `RESEND_API_KEY` and `MAIL_FROM` — see
+   [Deploy to Vercel](#deploy-to-vercel).
+4. **Channel 2 — [FormSubmit](https://formsubmit.co).** If channel 1 is not
+   configured or fails, the application is POSTed to FormSubmit's AJAX endpoint,
+   which emails it to `sisterrosellc@gmail.com` as a formatted table with
+   subject `New Vendor Application – [Business Name]`, CCs
+   `the5loavesagency@gmail.com`, and sends the applicant an automatic
+   confirmation (`_autoresponse`).
+5. **Last resort.** If *both* channels fail, the confirmation screen shows a
+   warning instead of a success message, downloads the PDF, and opens a
+   pre-filled email to the administrator so the vendor knows to send it manually.
 
-> **One-time activation:** the very first submission triggers a FormSubmit
-> confirmation email to `sisterrosellc@gmail.com`. Click the activation link once,
-> and every submission after that flows straight to the inbox.
+### Delivery is confirmed, not assumed
 
-**Never a dead end.** If FormSubmit is ever unreachable, the page falls back to
-generating the PDF locally, downloading it, and opening a pre-filled email to the
-administrator.
+A channel counts as delivered **only when its response body says so** — the
+function must return `emailed: true`, and FormSubmit must return
+`success: "true"`. FormSubmit answers **HTTP 200 with `{"success":"false"}`**
+when the recipient address has never been activated, when the form has been
+disabled, or when it is rate-limiting; treating that as success is what makes a
+site look like it is working while the promoter's inbox stays empty.
 
-### Optional: `/api/submit` (Supabase storage)
+## Troubleshooting: vendors submit but no email arrives
 
-The repo also includes a dependency-free Vercel function at `api/submit.js` for
-teams who additionally want to **save every application to a database** (Supabase)
-or send email via Resend. It is not required for the email flow above — see
-[`.env.example`](.env.example) and [`supabase/schema.sql`](supabase/schema.sql) to
-enable it.
+Work through these in order:
+
+1. **FormSubmit activation.** The first-ever submission to a new recipient
+   triggers a one-time activation email to `sisterrosellc@gmail.com` from
+   FormSubmit. Until someone clicks that link, **every** submission is silently
+   discarded. Check the inbox *and the spam folder* for it. If it can't be
+   found, submit the form once more to re-trigger it.
+2. **Gmail spam / Promotions.** Search Gmail for
+   `from:formsubmit.co OR subject:"New Vendor Application"` including spam and
+   all mail — the messages are often filed there rather than missing.
+3. **Watch the response.** Open the site, submit a test application, and check
+   the browser console. Failed deliveries now log
+   `Fallback delivery (FormSubmit) failed: formsubmit rejected: …` with the
+   reason FormSubmit gave, and the vendor sees the warning screen.
+4. **Turn on Resend (channel 1)** so delivery no longer depends on FormSubmit:
+   add `RESEND_API_KEY` and `MAIL_FROM` in Vercel and redeploy. This channel
+   also attaches the PDF and can store every application in Supabase, so
+   applications survive even if all email fails.
+
+### Optional: Supabase storage
+
+The Vercel function can also **save every application to a database**, which
+gives the promoter a durable record independent of email — see
+[`.env.example`](.env.example) and [`supabase/schema.sql`](supabase/schema.sql).
 
 ## Deploy to Vercel
 
@@ -89,6 +118,7 @@ enable it.
    | `RESEND_API_KEY` | Email delivery via [Resend](https://resend.com) |
    | `MAIL_FROM` | Verified sender, e.g. `Warthen RV Park <vendors@yourdomain.com>` |
    | `ADMIN_EMAIL` | Recipient (defaults to `sisterrosellc@gmail.com`) |
+   | `ADMIN_CC` | Extra recipients, comma separated (defaults to `the5loavesagency@gmail.com`) |
    | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | Optional application storage |
    | `SUPABASE_TABLE` | Defaults to `vendor_applications` |
 

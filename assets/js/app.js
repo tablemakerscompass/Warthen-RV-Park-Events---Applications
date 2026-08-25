@@ -496,7 +496,7 @@
     // Silently drop spam bots that filled the hidden honeypot.
     if (data.honeypot) {
       rememberSubmission(fp);
-      showConfirmation(data, buildPdf(data));
+      showConfirmation(data, buildPdf(data), true);
       return;
     }
 
@@ -508,15 +508,16 @@
     // Client-side PDF for the vendor's own records (download on confirmation).
     var pdfDoc = buildPdf(data);
 
-    postApplication(data)
+    postApplication(data, pdfDoc)
       .then(function () {
         rememberSubmission(fp);
-        showConfirmation(data, pdfDoc);
+        showConfirmation(data, pdfDoc, true);
       })
       .catch(function () {
-        // Email service unreachable — graceful fallback to the vendor's mail app.
+        // Every delivery channel failed — never claim success. Tell the vendor,
+        // hand them the PDF, and open their mail app addressed to the promoter.
         rememberSubmission(fp);
-        showConfirmation(data, pdfDoc);
+        showConfirmation(data, pdfDoc, false);
         if (pdfDoc) { try { pdfDoc.save(safeName(data)); } catch (e2) {} }
         mailtoFallback(data);
       })
@@ -532,14 +533,56 @@
     return "Motown-Review-Vendor-" + base + ".pdf";
   }
 
-  // Applications are emailed via FormSubmit (https://formsubmit.co) — no account
-  // or API key required. The full application is delivered as a formatted table;
-  // the applicant receives an automatic confirmation via the `_autoresponse`.
+  // ------------------------------------------------------------------
+  //  Delivery
+  //  Applications are delivered through two independent channels so a
+  //  single outage never loses a vendor:
+  //    1. /api/submit  — Resend email + Supabase storage (if configured).
+  //    2. FormSubmit   — account-free email relay.
+  //  A channel counts as delivered ONLY when it confirms delivery in its
+  //  response body. FormSubmit answers 200 with {"success":"false"} when
+  //  the recipient address has never been activated, when the form has
+  //  been disabled, or when it is rate-limiting — so checking the HTTP
+  //  status alone silently drops applications.
+  // ------------------------------------------------------------------
   var FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/sisterrosellc@gmail.com";
+  var API_ENDPOINT = "/api/submit";
 
-  function postApplication(data) {
+  function isTruthyFlag(v) {
+    return v === true || String(v).toLowerCase() === "true";
+  }
+
+  // jsPDF -> bare base64 (no data: prefix) for the server-side attachment.
+  function pdfToBase64(pdfDoc) {
+    if (!pdfDoc) return null;
+    try {
+      var uri = pdfDoc.output("datauristring");
+      var comma = uri.indexOf(",");
+      return comma === -1 ? null : uri.slice(comma + 1);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function postToApi(data, pdfDoc) {
+    return fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ application: data, pdfBase64: pdfToBase64(pdfDoc) })
+    }).then(function (r) {
+      if (!r.ok) throw new Error("api status " + r.status);
+      return r.json();
+    }).then(function (json) {
+      // The function answers 200 with emailed:false when no mail provider is
+      // configured — that is not a delivery, so fall through to FormSubmit.
+      if (!json || json.emailed !== true) throw new Error("api did not email");
+      return json;
+    });
+  }
+
+  function postToFormSubmit(data) {
     var payload = {
-      _subject: "New Vendor Application – " + (data.businessName || ""),
+      _subject: "New Vendor Application \u2013 " + (data.businessName || ""),
       _template: "table",
       _captcha: "false",
       _cc: "the5loavesagency@gmail.com",
@@ -585,15 +628,44 @@
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify(payload)
     }).then(function (r) {
-      if (!r.ok) throw new Error("bad status " + r.status);
-      // A 200 response means FormSubmit accepted the submission (the first one
-      // triggers a one-time activation email that must be confirmed).
-      return r.json().catch(function () { return {}; });
+      if (!r.ok) throw new Error("formsubmit status " + r.status);
+      return r.json().catch(function () { return null; });
+    }).then(function (json) {
+      // No parsable body — FormSubmit accepted it but told us nothing; treat
+      // that as a failure rather than assuming the promoter was emailed.
+      if (!json) throw new Error("formsubmit returned no body");
+      if (!isTruthyFlag(json.success)) {
+        throw new Error("formsubmit rejected: " + (json.message || "unknown reason"));
+      }
+      return json;
+    });
+  }
+
+  // Resolves when a channel confirms delivery; rejects when every channel fails.
+  function postApplication(data, pdfDoc) {
+    return postToApi(data, pdfDoc).catch(function (apiErr) {
+      console.warn("Primary delivery (/api/submit) failed:", apiErr.message);
+      return postToFormSubmit(data).catch(function (fsErr) {
+        console.error("Fallback delivery (FormSubmit) failed:", fsErr.message);
+        throw fsErr;
+      });
     });
   }
 
   /* ---------- Confirmation ---------- */
-  function showConfirmation(data, pdfDoc, offerDownload) {
+  function showConfirmation(data, pdfDoc, delivered) {
+    // When nothing got through, replace the success wording with instructions
+    // instead of telling the vendor their application was received.
+    var warning = document.getElementById("confirmWarning");
+    var lead = document.querySelector("#confirmScreen .confirm-lead");
+    if (delivered === false) {
+      if (warning) warning.hidden = false;
+      if (lead) lead.textContent = "We could not send your application automatically — please follow the steps below so it reaches us.";
+    } else {
+      if (warning) warning.hidden = true;
+      if (lead) lead.textContent = "Your vendor application has been successfully submitted.";
+    }
+
     var dl = document.getElementById("confirmDownload");
     var dlBtn = document.getElementById("downloadPdfBtn");
     if (pdfDoc && dl && dlBtn) {
