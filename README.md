@@ -142,6 +142,14 @@ backend. To exercise `/api/submit` locally, run `vercel dev`.
 
 ## Notes
 
+- **Bump the asset version when you edit CSS or JS.** `vercel.json` serves
+  `/assets/*` with `Cache-Control: public, max-age=31536000, immutable`, so
+  browsers keep those files for a year and will not even revalidate them. The
+  filenames are not content-hashed, so `index.html` references them with a
+  version query string (`assets/js/app.js?v=2`). Increment that number in both
+  the `<link>` and `<script>` tags whenever you change `styles.css` or `app.js`,
+  or returning visitors will keep running the old code no matter what you deploy.
+
 - Add the event flyer at `assets/img/flyer.jpg` (a styled stand-in renders
   automatically if it’s missing).
 - Booth dimensions are capped at 16 feet in the UI and re-checked on the server.
