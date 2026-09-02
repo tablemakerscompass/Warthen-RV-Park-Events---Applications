@@ -13,8 +13,6 @@ A vendor application system where vendors submit all their information directly 
 - The event planner secured **over 10 vendors in a single week**
 - Freed up the planner's time to focus on event logistics instead of paperwork
 
-## Stack
-JavaScript · [add your other tools/services here]
 
 # The Motown Review — Vendor Application Landing Page
 
