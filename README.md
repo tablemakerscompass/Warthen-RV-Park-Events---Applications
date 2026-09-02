@@ -1,3 +1,21 @@
+# Warthen RV Park Events — Vendor Applications
+
+A custom web application built for Warthen RV Park to streamline vendor signup and payment for their events.
+
+## The Problem
+Warthen RV Park needed a way for event vendors to sign up and pay online — without the event planner manually chasing down information from each vendor one by one.
+
+## What I Built
+A vendor application system where vendors submit all their information directly through the site, with an automatic email notification sent to the event planner for each new application. Vendors could also handle payment through the platform.
+
+## The Result
+- Eliminated manual back-and-forth for vendor intake
+- The event planner secured **over 10 vendors in a single week**
+- Freed up the planner's time to focus on event logistics instead of paperwork
+
+## Stack
+JavaScript · [add your other tools/services here]
+
 # The Motown Review — Vendor Application Landing Page
 
 A polished, mobile-responsive vendor application landing page for
