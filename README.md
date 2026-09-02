@@ -70,16 +70,16 @@ order, so one outage never loses a vendor. On submit the browser:
 1. Validates all fields and rejects spam via a hidden honeypot.
 2. Renders a printable **PDF copy** of the application (jsPDF).
 3. **Channel 1 — `/api/submit`.** POSTs the application plus the PDF to the
-   Vercel function, which emails it to `sisterrosellc@gmail.com` (CC
-   `the5loavesagency@gmail.com`) through [Resend](https://resend.com) with the
+   Vercel function, which emails it to `contact@example.com ` (CC
+   `admin-cc@example.com`) through [Resend](https://resend.com) with the
    PDF attached, sends the applicant a confirmation, and optionally stores the
    record in Supabase. Requires `RESEND_API_KEY` and `MAIL_FROM` — see
    [Deploy to Vercel](#deploy-to-vercel).
 4. **Channel 2 — [FormSubmit](https://formsubmit.co).** If channel 1 is not
    configured or fails, the application is POSTed to FormSubmit's AJAX endpoint,
-   which emails it to `sisterrosellc@gmail.com` as a formatted table with
+   which emails it to `vendor-contact@example.com` as a formatted table with
    subject `New Vendor Application – [Business Name]`, CCs
-   `the5loavesagency@gmail.com`, and sends the applicant an automatic
+   `admin-cc@example.com`, and sends the applicant an automatic
    confirmation (`_autoresponse`).
 5. **Last resort.** If *both* channels fail, the confirmation screen shows a
    warning instead of a success message, downloads the PDF, and opens a
@@ -99,7 +99,7 @@ site look like it is working while the promoter's inbox stays empty.
 Work through these in order:
 
 1. **FormSubmit activation.** The first-ever submission to a new recipient
-   triggers a one-time activation email to `sisterrosellc@gmail.com` from
+   triggers a one-time activation email to `vendor-contact@example.com` from
    FormSubmit. Until someone clicks that link, **every** submission is silently
    discarded. Check the inbox *and the spam folder* for it. If it can't be
    found, submit the form once more to re-trigger it.
@@ -133,8 +133,8 @@ gives the promoter a durable record independent of email — see
    |---|---|
    | `RESEND_API_KEY` | Email delivery via [Resend](https://resend.com) |
    | `MAIL_FROM` | Verified sender, e.g. `Warthen RV Park <vendors@yourdomain.com>` |
-   | `ADMIN_EMAIL` | Recipient (defaults to `sisterrosellc@gmail.com`) |
-   | `ADMIN_CC` | Extra recipients, comma separated (defaults to `the5loavesagency@gmail.com`) |
+   | `ADMIN_EMAIL` | Recipient (defaults to `vendor-contact@example.com`) |
+   | `ADMIN_CC` | Extra recipients, comma separated (defaults to `admin-cc@example.com`) |
    | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | Optional application storage |
    | `SUPABASE_TABLE` | Defaults to `vendor_applications` |
 
